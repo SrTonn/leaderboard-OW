@@ -1,5 +1,6 @@
 const got = require('got');
 const { JSDOM } = require('jsdom');
+const { formatLink } = require('../func');
 
 const baseUrl = 'https://playoverwatch.com/en-us/career/';
 const platform = 'pc';
@@ -61,7 +62,6 @@ const webScrap = async (profileUrl) => {
   return data;
 };
 
-const formatLink = (tag) => `${baseUrl}${platform}/${tag.replace('#', '-')}`;
+const newData = battleTags.map((tag) => webScrap(formatLink(baseUrl, platform, tag)));
 
-const newData = battleTags.map((tag) => webScrap(formatLink(tag)));
 module.exports = () => Promise.all(newData);

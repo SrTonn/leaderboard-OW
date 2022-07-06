@@ -41,6 +41,9 @@ const generateFinalTextToTelegram = (data) => {
   return result;
 };
 
+const formatLink = (baseUrl, platform, tag) => `${baseUrl}${platform}/${tag.replace('#', '-')}`;
+
 module.exports = {
   generateFinalTextToTelegram,
+  formatLink,
 };
