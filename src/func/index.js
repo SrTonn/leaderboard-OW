@@ -41,9 +41,12 @@ const generateFinalTextToTelegram = (data) => {
   return result;
 };
 
+const removeEmpty = (element) => !!element.textContent || element.error;
+
 const formatLink = (baseUrl, platform, tag) => `${baseUrl}${platform}/${tag.replace('#', '-')}`;
 
 module.exports = {
   generateFinalTextToTelegram,
   formatLink,
+  removeEmpty,
 };

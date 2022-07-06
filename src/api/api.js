@@ -1,6 +1,6 @@
 const got = require('got');
 const { JSDOM } = require('jsdom');
-const { formatLink } = require('../func');
+const { formatLink, removeEmpty } = require('../func');
 
 const baseUrl = 'https://playoverwatch.com/en-us/career/';
 const platform = 'pc';
@@ -29,8 +29,6 @@ const battleTags = [
   'Gabumon-11430',
   'SrTonn-11540',
 ];
-
-const removeEmpty = (element) => !!element.textContent;
 
 const webScrap = async (profileUrl) => {
   const data = { competitive: {} };
