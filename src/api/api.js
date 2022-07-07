@@ -42,7 +42,15 @@ const webScrap = async (profileUrl) => {
   const regexCatchRole = /[a-z]+(?=(\sSkill\sRating))/ig;
   const regexCatchRank = /[a-z]+(?=(Tier\.png))/ig;
 
-  data.name = dom.window.document.querySelector('div.masthead-player > h1').textContent;
+  try {
+    data.name = dom.window.document.querySelector('div.masthead-player > h1').textContent;
+  } catch (error) {
+    data.error = 'PROFILE NOT FOUND';
+    data.link = profileUrl;
+    data.battleTag = profileUrl.match(/.+\/(.+)$/)[1].replace('-', '#');
+    return data;
+  }
+
   const content = [...dom.window.document.querySelectorAll('div.competitive-rank-section')];
   content.splice(0, content.length / 2);
   content
