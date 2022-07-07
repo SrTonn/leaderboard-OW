@@ -48,9 +48,9 @@ const webScrap = async (profileUrl) => {
   content
     .filter(removeEmpty)
     .forEach((element) => {
-      const string = element.firstElementChild.outerHTML;
-      const role = string.match(regexCatchRole)[0].toLocaleLowerCase();
-      const rank = string.match(regexCatchRank)[0];
+      const { outerHTML } = element.firstElementChild;
+      const role = outerHTML.match(regexCatchRole)[0].toLocaleLowerCase();
+      const rank = outerHTML.match(regexCatchRank)[0];
       data.competitive[role] = {
         rank: element.textContent.toLocaleLowerCase(),
         tier: rank,
