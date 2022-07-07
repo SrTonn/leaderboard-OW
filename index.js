@@ -14,8 +14,7 @@ const {
 const sendMessageToTelegram = async () => {
   const dataObj = await apiData();
   const finalMessage = generateFinalTextToTelegram(dataObj);
-  const data = new Date().toLocaleString();
-  console.log(`executei\n${data}`);
+  const date = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
   if (NODE_ENV === 'production') {
     try {
@@ -24,7 +23,7 @@ const sendMessageToTelegram = async () => {
         url: `https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`,
         data: {
           chat_id: GROUP_OVERWATCH_BR_ID,
-          text: `${finalMessage}updated ${data}`,
+          text: `${finalMessage}updated ${date}`,
           message_id: GROUP_MESSAGE_ID,
           entities: [{
             offset: 0,
@@ -44,7 +43,7 @@ const sendMessageToTelegram = async () => {
       url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
       data: {
         chat_id: DEVELOPER_OWNER_ID,
-        text: `${finalMessage}updated ${data}\n> development mode`,
+        text: `${finalMessage}updated ${date}\n> development mode`,
         entities: [{
           offset: 0,
           length: finalMessage.length,
