@@ -7,13 +7,19 @@
   "extends": [
     "airbnb-base"
   ],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": "latest"
   },
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "rules": {
     "no-console": ["warn", { "allow": ["error"] }],
     "max-len": ["error", { "code": 100 }],
     "prefer-destructuring": ["error", {"object": true, "array": false}],
-    "consistent-return": "off"
+    "consistent-return": "off",
+    "import/no-unresolved": "off",
+    "import/extensions": "off"
   }
 }
