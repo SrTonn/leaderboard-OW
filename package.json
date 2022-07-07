@@ -2,10 +2,12 @@
   "name": "leaderboardow",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node .",
-    "dev": "node . --port 4301"
+    "build": "npx tsc",
+    "start": "node ./dist",
+    "dev": "npx ts-node ./src/index.ts",
+    "debug": "nodemon --exec npx ts-node ./src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,8 +20,14 @@
     "jsdom": "^16.4.0"
   },
   "devDependencies": {
-    "eslint": "^8.18.0",
+    "@types/got": "^9.6.12",
+    "@types/jsdom": "^16.2.14",
+    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/parser": "^5.30.5",
+    "eslint": "^8.19.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0"
+    "eslint-plugin-import": "^2.26.0",
+    "nodemon": "^2.0.19",
+    "typescript": "^4.7.4"
   }
 }

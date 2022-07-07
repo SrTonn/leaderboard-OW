@@ -1,7 +1,9 @@
-require('dotenv').config();
+import apiData from './api/api';
+import { generateFinalTextToTelegram } from './func';
+
+import 'dotenv/config';
+
 const axios = require('axios').default;
-const apiData = require('./src/api/api');
-const { generateFinalTextToTelegram } = require('./src/func');
 
 const {
   BOT_TOKEN,
@@ -12,13 +14,14 @@ const {
 } = process.env;
 
 const sendMessageToTelegram = async () => {
-  const dataObj = await apiData();
+  const dataObj = await apiData;
+
   const finalMessage = generateFinalTextToTelegram(dataObj);
   const date = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
   if (NODE_ENV === 'production') {
     try {
-      await axios({ /* editar mensagem fixada no grupo */
+      return await axios({ /* editar mensagem fixada no grupo */
         method: 'post',
         url: `https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`,
         data: {
