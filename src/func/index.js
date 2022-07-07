@@ -23,10 +23,50 @@ const splitNameByClass = (array) => {
 
 const firstLetterUpperCase = (string) => string[0].toUpperCase() + string.slice(1);
 
+const addASCIICharacters = (data) => {
+  const allRole = Object.keys(data);
+  const result = JSON.parse(JSON.stringify(data));
+  allRole.forEach((role) => {
+    result[role] = data[role].reduce((acc, line, index, array) => {
+      const regexCatchRole = /(?<=\d{4}\s)\w*\s*/g;
+      const currentRole = line.match(regexCatchRole)[0].trim();
+      const nextLine = array[index + 1];
+      const afterLine = array[index - 1];
+      const afterRole = afterLine && afterLine.match(regexCatchRole)[0].trim();
+      const lineWithoutRole = line.replace(regexCatchRole, '');
+
+      if (index === 0) return [...acc, `╔ ${currentRole}`, `╚ ${lineWithoutRole}`];
+
+      if (!nextLine) {
+        if (afterRole !== currentRole) return [...acc, `╔ ${currentRole}`, `╚ ${lineWithoutRole}`];
+
+        return [...acc, `╚ ${lineWithoutRole}`];
+      }
+
+      const nextRole = nextLine.match(regexCatchRole)[0].trim();
+
+      if (currentRole !== nextRole && currentRole === afterRole) {
+        return [...acc, `╚ ${lineWithoutRole}`];
+      }
+
+      if (afterRole !== currentRole && currentRole !== nextRole) {
+        return [...acc, `╔ ${currentRole}`, `╚ ${lineWithoutRole}`];
+      }
+
+      if (afterRole !== currentRole) return [...acc, `╔ ${currentRole}`, `╠ ${lineWithoutRole}`];
+
+      return [...acc, `╠ ${lineWithoutRole}`];
+    }, []);
+  });
+
+  return result;
+};
+
 const generateFinalTextToTelegram = (data) => {
   let result = '';
-  Object.entries(splitNameByClass(data)).forEach((entry) => {
-    result += `${firstLetterUpperCase(entry[0])}\n`;
+  Object.entries(addASCIICharacters(splitNameByClass(data))).forEach((entry) => {
+    const playersLength = entry[1].length - entry[1].join('\n').match(/╔/g).length;
+    result += `${firstLetterUpperCase(entry[0])} (${playersLength})\n`;
     entry[1].forEach((line) => { result += `${line}\n`; });
     result += '\n';
   });
