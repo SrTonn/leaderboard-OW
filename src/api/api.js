@@ -52,6 +52,17 @@ const webScrap = async (profileUrl) => {
   }
 
   const content = [...dom.window.document.querySelectorAll('div.competitive-rank-section')];
+  if (!content.length) {
+    try {
+      data.link = profileUrl;
+      data.battleTag = profileUrl.match(/.+\/(.+)$/)[1].replace('-', '#');
+      data.error = dom.window.document
+        .querySelector('div.masthead-permission-level-container.u-center-block').textContent;
+    } catch (error) {
+      data.error = 'Player have no Skill Rating.';
+    }
+  }
+
   content.splice(0, content.length / 2);
   content
     .filter(removeEmpty)
