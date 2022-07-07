@@ -31,7 +31,7 @@ const battleTags = [
 ];
 
 const webScrap = async (profileUrl) => {
-  const data = { competitive: {} };
+  const data = {};
   const response = await got(profileUrl, {
     retry: {
       calculateDelay: ({ computedValue }) => computedValue / 10,
@@ -51,6 +51,7 @@ const webScrap = async (profileUrl) => {
       const { outerHTML } = element.firstElementChild;
       const role = outerHTML.match(regexCatchRole)[0].toLocaleLowerCase();
       const rank = outerHTML.match(regexCatchRank)[0];
+      if (!('competitive' in data)) data.competitive = {};
       data.competitive[role] = {
         rank: element.textContent.toLocaleLowerCase(),
         tier: rank,
