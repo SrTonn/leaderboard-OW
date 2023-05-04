@@ -1,7 +1,11 @@
 require('dotenv').config();
 const axios = require('axios').default;
+const express = require('express');
 const apiData = require('./src/api/api');
 const { generateFinalTextToTelegram } = require('./src/func');
+
+const app = express();
+const PORT = process.env.PORT || 3030;
 
 const {
   BOT_TOKEN,
@@ -62,3 +66,7 @@ const sendMessageToTelegram = async () => {
 };
 
 sendMessageToTelegram();
+
+app.listen(PORT, () => {
+  console.log(`server started on port ${PORT}`);
+});
