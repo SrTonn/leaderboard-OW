@@ -1,6 +1,16 @@
 const sortByHigherSR = (obj) => {
+  // eslint-disable-next-line max-len
+  const ranks = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'grandmaster', 'top500'];
   Object.values(obj)
-    .forEach((arr) => arr.sort((a, b) => b.match(/\d{3,4}/g) - a.match(/\d{3,4}/g)));
+    .forEach((arr) => {
+      arr.sort((a, b) => {
+        const [aTier, aRank] = a.split(' ');
+        const [bTier, bRank] = b.split(' ');
+        if (bTier === aTier) return aRank - bRank;
+        return ranks.indexOf(bTier) - ranks.indexOf(aTier);
+      });
+    });
+
   return obj;
 };
 
@@ -12,7 +22,7 @@ const splitNameByClass = (array) => {
     Object.keys(competitive).forEach((key) => {
       acc[key] = [
         ...acc[key] || '',
-        `${competitive[key].rank} ${competitive[key].tier} - ${name}`,
+        `${competitive[key].tier.toLowerCase()} ${competitive[key].rank} - ${name}`,
       ];
     });
     return acc;
@@ -64,8 +74,8 @@ const addASCIICharacters = (data) => {
 
 const generateFinalTextToTelegram = (data) => {
   let result = '';
-  Object.entries(addASCIICharacters(splitNameByClass(data))).forEach((entry) => {
-    const playersLength = entry[1].length - entry[1].join('\n').match(/╔/g).length;
+  Object.entries((splitNameByClass(data))).forEach((entry) => {
+    const playersLength = entry[1].length;
     result += `${firstLetterUpperCase(entry[0])} (${playersLength})\n`;
     entry[1].forEach((line) => { result += `${line}\n`; });
     result += '\n';
@@ -76,7 +86,7 @@ const generateFinalTextToTelegram = (data) => {
 
 const removeEmpty = (element) => !!element.textContent || element.error;
 
-const formatLink = (baseUrl, platform, tag) => `${baseUrl}${platform}/${tag.replace('#', '-')}`;
+const formatLink = (baseUrl, tag) => `${baseUrl}${tag.replace('#', '-')}`;
 
 module.exports = {
   generateFinalTextToTelegram,

@@ -1,9 +1,8 @@
 const got = require('got');
 const { JSDOM } = require('jsdom');
-const { formatLink, removeEmpty } = require('../func');
+const { formatLink } = require('../func');
 
-const baseUrl = 'https://playoverwatch.com/en-us/career/';
-const platform = 'pc';
+const baseUrl = 'https://overwatch.blizzard.com/en-us/career/';
 
 const battleTags = [
   'soberana-11388',
@@ -28,22 +27,25 @@ const battleTags = [
   'Brunolds-1534',
   'Gabumon-11430',
   'SrTonn-11540',
+  'Pedabliw-1603',
 ];
+const getDom = async (profileUrl) => got(profileUrl, {
+  throwHttpErrors: false,
+  retry: {
+    calculateDelay: ({ computedValue }) => computedValue / 10,
+  },
+});
 
 const webScrap = async (profileUrl) => {
   const data = {};
-  const response = await got(profileUrl, {
-    retry: {
-      calculateDelay: ({ computedValue }) => computedValue / 10,
-    },
-  });
-
+  const response = await getDom(profileUrl);
   const dom = new JSDOM(response.body);
-  const regexCatchRole = /[a-z]+(?=(\sSkill\sRating))/ig;
-  const regexCatchRank = /[a-z]+(?=(Tier\.png))/ig;
+  const regexCatchRole = /role\/(.+)-.+\.svg/i;
+  const regexCatchRank = /rank\/(.+)Tier-([1-5])-.+\.png/i;
 
   try {
-    data.name = dom.window.document.querySelector('div.masthead-player > h1').textContent;
+    data.name = dom.window.document
+      .querySelector('div.Profile-player--summaryWrapper > div > h1').textContent;
   } catch (error) {
     data.error = 'PROFILE NOT FOUND';
     data.link = profileUrl;
@@ -51,7 +53,7 @@ const webScrap = async (profileUrl) => {
     return data;
   }
 
-  const content = [...dom.window.document.querySelectorAll('div.competitive-rank-section')];
+  const content = [...dom.window.document.querySelectorAll('.Profile-playerSummary--roleWrapper')];
   if (!content.length) {
     try {
       data.link = profileUrl;
@@ -62,24 +64,25 @@ const webScrap = async (profileUrl) => {
       data.error = 'Player have no Skill Rating.';
     }
   }
-
-  content.splice(0, content.length / 2);
   content
-    .filter(removeEmpty)
+    // .filter(removeEmpty)
     .forEach((element) => {
-      const { outerHTML } = element.firstElementChild;
-      const role = outerHTML.match(regexCatchRole)[0].toLocaleLowerCase();
-      const rank = outerHTML.match(regexCatchRank)[0];
+      const { outerHTML } = element;
+
+      const role = outerHTML.match(regexCatchRole)[1];
+      // eslint-disable-next-line no-unused-vars
+      const [_, tierName, tierNumber] = outerHTML.match(regexCatchRank);
+
       if (!('competitive' in data)) data.competitive = {};
       data.competitive[role] = {
-        rank: element.textContent.toLocaleLowerCase(),
-        tier: rank,
+        rank: tierNumber,
+        tier: tierName,
       };
     });
 
   return data;
 };
 
-const newData = battleTags.map((tag) => webScrap(formatLink(baseUrl, platform, tag)));
+const newData = battleTags.map((bTag) => webScrap(formatLink(baseUrl, bTag)));
 
 module.exports = () => Promise.all(newData);
