@@ -8,6 +8,7 @@ const {
   GROUP_MESSAGE_ID,
   GROUP_OVERWATCH_BR_ID,
   DEVELOPER_OWNER_ID,
+  TOPIC_ID,
   NODE_ENV,
 } = process.env;
 
@@ -23,6 +24,7 @@ const sendMessageToTelegram = async () => {
         url: `https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`,
         data: {
           chat_id: GROUP_OVERWATCH_BR_ID,
+          message_thread_id: TOPIC_ID || null,
           text: `${finalMessage}updated ${date}`,
           message_id: GROUP_MESSAGE_ID,
           entities: [{
@@ -35,6 +37,8 @@ const sendMessageToTelegram = async () => {
     } catch (error) {
       console.error(error);
     }
+
+    return;
   }
 
   try {
@@ -43,6 +47,7 @@ const sendMessageToTelegram = async () => {
       url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
       data: {
         chat_id: DEVELOPER_OWNER_ID,
+        message_thread_id: TOPIC_ID || null,
         text: `${finalMessage}updated ${date}\n> development mode`,
         entities: [{
           offset: 0,
