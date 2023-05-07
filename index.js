@@ -1,72 +1,92 @@
-require('dotenv').config();
-const axios = require('axios').default;
-const express = require('express');
-const apiData = require('./src/api/api');
-const { generateFinalTextToTelegram } = require('./src/func');
+import { createServer } from 'node:http';
+// import { once } from 'node:events';
+import * as dotenv from 'dotenv';
+import apiData from './src/api/api.js';
+import { generateFinalTextToTelegram } from './src/func/index.js';
+import { editMessageText, sendMessage } from './src/telegram-methods/index.js';
 
-const app = express();
-const PORT = process.env.PORT || 3030;
+dotenv.config();
 
 const {
-  BOT_TOKEN,
   GROUP_MESSAGE_ID,
   GROUP_OVERWATCH_BR_ID,
   DEVELOPER_OWNER_ID,
   TOPIC_ID,
-  NODE_ENV,
+  NODE_ENV = 'production',
 } = process.env;
 
-const sendMessageToTelegram = async () => {
+const regexCatchInterval = /\/setInterval\/(\d+)/i;
+let intervalId;
+
+const main = async () => {
+  const date = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  // eslint-disable-next-line no-console
+  console.log(`código executou=>${date}`);
   const dataObj = await apiData();
   const finalMessage = generateFinalTextToTelegram(dataObj);
-  const date = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
   if (NODE_ENV === 'production') {
-    try {
-      await axios({ /* editar mensagem fixada no grupo */
-        method: 'post',
-        url: `https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`,
-        data: {
-          chat_id: GROUP_OVERWATCH_BR_ID,
-          message_thread_id: TOPIC_ID || null,
-          text: `${finalMessage}updated ${date}`,
-          message_id: GROUP_MESSAGE_ID,
-          entities: [{
-            offset: 0,
-            length: finalMessage.length,
-            type: 'code',
-          }],
-        },
-      });
-    } catch (error) {
-      console.error(error);
-    }
+    // eslint-disable-next-line no-console
+    console.log('Ambiente de produção detectado, atualizando ranking no grupo');
+    await editMessageText(GROUP_OVERWATCH_BR_ID, GROUP_MESSAGE_ID, finalMessage, date, TOPIC_ID);
 
+    // eslint-disable-next-line no-console
+    console.log(`código executou=>${date}`);
     return;
   }
 
-  try {
-    await axios({ /* enviar mensagem privada para Tonn */
-      method: 'post',
-      url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-      data: {
-        chat_id: DEVELOPER_OWNER_ID,
-        message_thread_id: TOPIC_ID || null,
-        text: `${finalMessage}updated ${date}\n> development mode`,
-        entities: [{
-          offset: 0,
-          length: finalMessage.length,
-          type: 'code',
-        }],
-      },
-    });
-  } catch (error) {
-    console.error(error);
-  }
+  await sendMessage(DEVELOPER_OWNER_ID, finalMessage);
+  // await sendMessage(DEVELOPER_OWNER_ID, `código executou=> ${date}`);
 };
 
-sendMessageToTelegram();
+async function pingRoute(request, response) {
+  await sendMessage(DEVELOPER_OWNER_ID, 'ping!');
+  response.end('Ok');
+}
 
-app.listen(PORT, () => {
-  console.log(`server started on port ${PORT}`);
-});
+async function updateRoute(request, response) {
+  await main();
+  response.end('Ok');
+}
+function setIntervalFunc(minute) {
+  intervalId = setInterval(() => {
+    main();
+  }, 1000 * 60 * minute);
+}
+async function setIntervalRoute(request, response) {
+  const minute = regexCatchInterval.exec(request.url)[1];
+  setIntervalFunc(minute);
+  response.end(`range of ${minute} minutes set`);
+}
+
+async function clearIntervalRoute(request, response) {
+  if (intervalId) clearInterval(intervalId);
+  response.end('Interval cleared');
+}
+
+async function handler(request, response) {
+  if (request.url === '/ping' && request.method.toLowerCase() === 'get') {
+    return pingRoute(request, response);
+  }
+
+  if (request.url === '/update' && request.method.toLowerCase() === 'get') {
+    return updateRoute(request, response);
+  }
+
+  if (regexCatchInterval.test(request.url) && request.method.toLowerCase() === 'get') {
+    return setIntervalRoute(request, response);
+  }
+
+  if (/\/clearInterval/i.test(request.url) && request.method.toLowerCase() === 'get') {
+    return clearIntervalRoute(request, response);
+  }
+
+  response.writeHead(404);
+  response.end('not found!');
+}
+
+setIntervalFunc(10);
+const app = createServer(handler)
+  .listen(3000, () => console.log('listening to 3000'));
+
+export { app };
