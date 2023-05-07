@@ -18,9 +18,7 @@ const removeBattleTagsWithErros = (obj) => !obj.error;
 
 const splitNameByClass = (array) => {
   const validBattleTagsList = array.filter(removeBattleTagsWithErros);
-  console.log('validBattleTagsList=>', validBattleTagsList);
   const result = validBattleTagsList.reduce((acc, { name, competitive }) => {
-    console.log('competitive=>', competitive);
     Object.keys(competitive).forEach((key) => {
       acc[key] = [
         ...acc[key] || '',
@@ -33,7 +31,7 @@ const splitNameByClass = (array) => {
   return sortByHigherSR(result);
 };
 
-const firstLetterUpperCase = (string) => string[0].toUpperCase() + string.slice(1);
+const firstLetterUpperCase = (string) => string.replace(/\w/, (letter) => letter.toUpperCase());
 
 const addASCIICharacters = (data) => {
   const allRole = Object.keys(data);
@@ -83,7 +81,9 @@ const generateFinalTextToTelegram = (data) => {
   Object.entries(addASCIICharacters(splitNameByClass(data))).forEach((entry) => {
     const playersLength = entry[1].length - entry[1].join('\n').match(/╔/g).length;
     result += `${firstLetterUpperCase(entry[0])} (${playersLength})\n`;
-    entry[1].forEach((line) => { result += `${line}\n`; });
+    entry[1].forEach((line) => {
+      result += `${line[0] === '╔' ? firstLetterUpperCase(line) : line}\n`;
+    });
     result += '\n';
   });
 
