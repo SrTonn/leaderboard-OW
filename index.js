@@ -12,11 +12,8 @@ const {
   GROUP_OVERWATCH_BR_ID,
   DEVELOPER_OWNER_ID,
   TOPIC_ID,
-  NODE_ENV = 'production',
+  NODE_ENV,
 } = process.env;
-
-const regexCatchInterval = /\/setInterval\/(\d+)/i;
-let intervalId;
 
 const main = async () => {
   const date = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
@@ -38,6 +35,7 @@ const main = async () => {
   await sendMessage(DEVELOPER_OWNER_ID, finalMessage);
   // await sendMessage(DEVELOPER_OWNER_ID, `código executou=> ${date}`);
 };
+main();
 
 async function pingRoute(request, response) {
   await sendMessage(DEVELOPER_OWNER_ID, 'ping!');
@@ -47,21 +45,6 @@ async function pingRoute(request, response) {
 async function updateRoute(request, response) {
   await main();
   response.end('Ok');
-}
-function setIntervalFunc(minute) {
-  intervalId = setInterval(() => {
-    main();
-  }, 1000 * 60 * minute);
-}
-async function setIntervalRoute(request, response) {
-  const minute = regexCatchInterval.exec(request.url)[1];
-  setIntervalFunc(minute);
-  response.end(`range of ${minute} minutes set`);
-}
-
-async function clearIntervalRoute(request, response) {
-  if (intervalId) clearInterval(intervalId);
-  response.end('Interval cleared');
 }
 
 async function handler(request, response) {
@@ -73,19 +56,10 @@ async function handler(request, response) {
     return updateRoute(request, response);
   }
 
-  if (regexCatchInterval.test(request.url) && request.method.toLowerCase() === 'get') {
-    return setIntervalRoute(request, response);
-  }
-
-  if (/\/clearInterval/i.test(request.url) && request.method.toLowerCase() === 'get') {
-    return clearIntervalRoute(request, response);
-  }
-
   response.writeHead(404);
   response.end('not found!');
 }
 
-setIntervalFunc(10);
 const app = createServer(handler)
   .listen(3000, () => console.log('listening to 3000'));
 
