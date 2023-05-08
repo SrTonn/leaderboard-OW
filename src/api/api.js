@@ -48,9 +48,12 @@ const battleTags = [
   'LInk#14597',
   'Rick#24285',
   'Temperator#1616',
-  'Dronxz#1586', // private profile
-  'Kiba00K7#1728', // CONSOLE PLAYER
+  'Dronxz#1586',
+  'Kiba00K7#1728',
   'SrTonn-11540',
+  'guuilp-11103',
+  'Moiritaa-1211',
+  'roberta-11837/',
 ];
 
 const getDom = async (profileUrl) => got(profileUrl, {
