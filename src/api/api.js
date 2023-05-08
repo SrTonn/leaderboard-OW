@@ -52,6 +52,7 @@ const battleTags = [
   'Kiba00K7#1728',
   'SrTonn-11540',
   'guuilp-11103',
+  'Vash-12573',
   'Moiritaa-1211',
   'roberta-11837/',
 ];
