@@ -1,9 +1,9 @@
 import { createServer } from 'node:http';
 // import { once } from 'node:events';
 import * as dotenv from 'dotenv';
-import apiData from './api/api.js';
-import { generateFinalTextToTelegram } from './func/index.js';
-import { editMessageText, sendMessage } from './telegram-methods/index.js';
+import apiData from './src/api/api.js';
+import { generateFinalTextToTelegram } from './src/func/index.js';
+import { editMessageText, sendMessage } from './src/telegram-methods/index.js';
 
 dotenv.config();
 

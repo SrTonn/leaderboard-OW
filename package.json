@@ -2,7 +2,7 @@
   "name": "leaderboardow",
   "version": "1.1.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node .",
