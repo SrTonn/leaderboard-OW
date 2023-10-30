@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import * as dotenv from 'dotenv';
 import apiData from './src/api/api';
 import { generateFinalTextToTelegram } from './src/func/index';
-import { end } from './src/helper/index';
+// import { end } from './src/helper/index';
 import { editMessageText, sendMessage } from './src/telegram-methods/index';
 import * as supabase from './src/database/index';
 
@@ -23,7 +23,7 @@ async function pingRoute(request, response) {
 }
 
 async function updateRoute(request, response) {
-  const startTime = performance.now();
+  // const startTime = performance.now();
   const date = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   // eslint-disable-next-line no-console
   const battleTags = await supabase.getData().then((res) => res.data);
