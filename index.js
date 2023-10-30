@@ -42,13 +42,10 @@ async function updateRoute(request, response) {
     await editMessageText(GROUP_OVERWATCH_BR_ID, GROUP_MESSAGE_ID, finalMessage, date, TOPIC_ID);
 
     // eslint-disable-next-line no-console
-    console.log(`código executou=> ${date}`);
-    end(startTime);
     return response.end('Ok');
   }
 
   await sendMessage(DEVELOPER_OWNER_ID, finalMessage);
-  end(startTime);
   response.end('Ok');
 }
 
