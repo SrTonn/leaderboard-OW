@@ -1,9 +1,10 @@
 import { createServer } from 'node:http';
-// import { once } from 'node:events';
 import * as dotenv from 'dotenv';
-import apiData from './src/api/api.js';
-import { generateFinalTextToTelegram } from './src/func/index.js';
-import { editMessageText, sendMessage } from './src/telegram-methods/index.js';
+import apiData from './src/api/api';
+import { generateFinalTextToTelegram } from './src/func/index';
+import { end } from './src/helper/index';
+import { editMessageText, sendMessage } from './src/telegram-methods/index';
+import * as supabase from './src/database/index';
 
 dotenv.config();
 
@@ -13,13 +14,26 @@ const {
   DEVELOPER_OWNER_ID,
   TOPIC_ID,
   NODE_ENV,
+  PORT,
 } = process.env;
 
-const main = async () => {
+async function pingRoute(request, response) {
+  await sendMessage(DEVELOPER_OWNER_ID, 'pong!');
+  response.end('Ok');
+}
+
+async function updateRoute(request, response) {
+  const startTime = performance.now();
   const date = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   // eslint-disable-next-line no-console
-  console.log(`código executou=>${date}`);
-  const dataObj = await apiData();
+  const battleTags = await supabase.getData().then((res) => res.data);
+
+  // console.log(battleTags)
+
+  const dataObj = await apiData(battleTags);
+
+  const objWithError = dataObj.filter((obj) => obj.error && obj.error !== null);
+  supabase.update(objWithError);
   const finalMessage = generateFinalTextToTelegram(dataObj);
 
   if (NODE_ENV === 'production') {
@@ -28,23 +42,24 @@ const main = async () => {
     await editMessageText(GROUP_OVERWATCH_BR_ID, GROUP_MESSAGE_ID, finalMessage, date, TOPIC_ID);
 
     // eslint-disable-next-line no-console
-    console.log(`código executou=>${date}`);
-    return;
+    console.log(`código executou=> ${date}`);
+    end(startTime);
+    return response.end('Ok');
   }
 
   await sendMessage(DEVELOPER_OWNER_ID, finalMessage);
-  // await sendMessage(DEVELOPER_OWNER_ID, `código executou=> ${date}`);
-};
-main();
-
-async function pingRoute(request, response) {
-  await sendMessage(DEVELOPER_OWNER_ID, 'ping!');
+  end(startTime);
   response.end('Ok');
 }
 
-async function updateRoute(request, response) {
-  await main();
-  response.end('Ok');
+async function updateDatabase(request, response) {
+  const battleTags = await supabase.getAllData().then((res) => res.data);
+
+  const dataObj = await apiData(battleTags);
+
+  supabase.update(dataObj);
+
+  response.end('Database atualizado');
 }
 
 async function handler(request, response) {
@@ -56,11 +71,15 @@ async function handler(request, response) {
     return updateRoute(request, response);
   }
 
+  if (request.url === '/db/update' && request.method.toLowerCase() === 'get') {
+    return updateDatabase(request, response);
+  }
+
   response.writeHead(404);
   response.end('not found!');
 }
 
-const app = createServer(handler)
-  .listen(3000, () => console.log('listening to 3000'));
+// eslint-disable-next-line no-console
+const app = createServer(handler).listen(PORT, () => console.log(`listening to ${PORT}`));
 
 export { app };

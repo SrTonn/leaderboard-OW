@@ -36,13 +36,14 @@ const firstLetterUpperCase = (string) => string.replace(/\w/, (letter) => letter
 const addASCIICharacters = (data) => {
   const allRole = Object.keys(data);
   const result = JSON.parse(JSON.stringify(data));
+
   allRole.forEach((role) => {
     result[role] = data[role].reduce((acc, line, index, array) => {
-      const regexCatchRole = /\w+(?=(\s\d{1}))/g;
+      const regexCatchRole = /\w+(?=(\s\d))/g;
       const currentRole = line.match(regexCatchRole)[0].trim();
       const nextLine = array[index + 1];
       const beforeLine = array[index - 1];
-      const beforeRole = beforeLine && beforeLine.match(regexCatchRole)[0].trim();
+      const beforeRole = beforeLine?.match(regexCatchRole)[0].trim();
       const lineWithoutRole = line.replace(regexCatchRole, '').trim();
 
       if (index === 0) {
