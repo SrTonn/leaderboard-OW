@@ -47,7 +47,7 @@ const addASCIICharacters = (data) => {
       const lineWithoutRole = line.replace(regexCatchRole, '').trim();
 
       if (index === 0) {
-        const nextRole = nextLine.match(regexCatchRole)[0].trim();
+        const nextRole = nextLine?.match(regexCatchRole)[0].trim();
         const charASCII = nextRole === currentRole ? '╠' : '╚';
         return [...acc, `╔ ${currentRole}`, `${charASCII} ${lineWithoutRole}`];
       }
