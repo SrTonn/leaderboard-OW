@@ -5,11 +5,15 @@ dotenv.config();
 
 const projectUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const tableName = process.env.SUPABASE_TABLE;
 // Create a single supabase client for interacting with your database
 
 const supabase = createClient(projectUrl, supabaseKey);
 
-const tableName = 'BATTLETAG_TABLE';
+supabase.auth.signInWithPassword({
+  email: process.env.SUPABASE_EMAIL,
+  password: process.env.SUPABASE_PASSWORD,
+});
 
 const getData = async () => supabase
   .from(tableName)

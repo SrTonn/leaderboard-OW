@@ -2,7 +2,6 @@ import { createServer } from 'node:http';
 import * as dotenv from 'dotenv';
 import apiData from './src/api/api';
 import { generateFinalTextToTelegram } from './src/func/index';
-// import { end } from './src/helper/index';
 import { editMessageText, sendMessage } from './src/telegram-methods/index';
 import * as supabase from './src/database/index';
 
@@ -28,8 +27,11 @@ async function updateRoute(request, response) {
   // eslint-disable-next-line no-console
   const battleTags = await supabase.getData().then((res) => res.data);
 
-  // console.log(battleTags)
-
+  if (battleTags.length < 1) {
+    console.warn('Nenhuma battletag foi retornada');
+    response.writeHead(204);
+    return response.end();
+  }
   const dataObj = await apiData(battleTags);
 
   const objWithError = dataObj.filter((obj) => obj.error && obj.error !== null);
