@@ -1,7 +1,10 @@
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
-dotenv.config();
+const Config = {
+  NODE_ENV: process.env.NODE_ENV,
+};
+dotenv.config({ path: `.env.${Config.NODE_ENV}` });
 
 const {
   BOT_TOKEN,
@@ -23,7 +26,7 @@ const sendMessage = async (chatId, message) => {
       },
     });
   } catch (error) {
-    await sendMessage(chatId, message);
+    console.error(error);
   }
 };
 
@@ -45,7 +48,7 @@ const editMessageText = async (chatId, messageId, message, date, topicId) => {
       },
     });
   } catch (error) {
-    await editMessageText(chatId, messageId, message, date, topicId);
+    console.error(error);
   }
 };
 

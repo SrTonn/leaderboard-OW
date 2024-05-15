@@ -1,7 +1,10 @@
 import * as dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 
-dotenv.config();
+const Config = {
+  NODE_ENV: process.env.NODE_ENV,
+};
+dotenv.config({ path: `.env.${Config.NODE_ENV}` });
 
 const projectUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
