@@ -16,7 +16,8 @@ const webScrap = async (profileUrl) => {
   const response = await getDom(profileUrl);
   const dom = new JSDOM(response.body);
   const regexCatchRole = /role\/(.+)-.+\.svg/i;
-  const regexCatchRank = /rank\/(.+)Tier-([1-5])-.+\.png/i;
+  const regexCatchTierRank = /\/Rank_(.+)Tier-\w+\.png/i;
+  const regexCatchTierDivision = /\/TierDivision_([1-5])-\w+\.png/i;
 
   try {
     data.battleTag = profileUrl.match(/.+\/(.+)$/)[1].replace('-', '#');
@@ -56,11 +57,12 @@ const webScrap = async (profileUrl) => {
 
       const role = outerHTML.match(regexCatchRole)[1];
       // eslint-disable-next-line no-unused-vars
-      const [_, tierName, tierNumber] = outerHTML.match(regexCatchRank);
+      const tierName = outerHTML.match(regexCatchTierRank)[1];
+      const tierDivisionNumber = outerHTML.match(regexCatchTierDivision)[1];
 
       if (!('competitive' in data)) data.competitive = {};
       data.competitive[role] = {
-        rank: tierNumber,
+        rank: tierDivisionNumber,
         tier: tierName,
       };
     });

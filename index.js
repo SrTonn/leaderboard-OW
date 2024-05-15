@@ -5,7 +5,10 @@ import { generateFinalTextToTelegram } from './src/func/index';
 import { editMessageText, sendMessage } from './src/telegram-methods/index';
 import * as supabase from './src/database/index';
 
-dotenv.config();
+const Config = {
+  NODE_ENV: process.env.NODE_ENV,
+};
+dotenv.config({ path: `.env.${Config.NODE_ENV}` });
 
 const {
   GROUP_MESSAGE_ID,
@@ -38,7 +41,7 @@ async function updateRoute(request, response) {
   supabase.update(objWithError);
   const finalMessage = generateFinalTextToTelegram(dataObj);
 
-  if (NODE_ENV === 'production') {
+  if (NODE_ENV === 'production' || NODE_ENV === 'prd') {
     // eslint-disable-next-line no-console
     console.log('Ambiente de produção detectado, atualizando ranking no grupo');
     await editMessageText(GROUP_OVERWATCH_BR_ID, GROUP_MESSAGE_ID, finalMessage, date, TOPIC_ID);
@@ -66,7 +69,7 @@ async function handler(request, response) {
     return pingRoute(request, response);
   }
 
-  if (request.url === '/update' && request.method.toLowerCase() === 'get') {
+  if (request.url === '/update/leaderboard' && request.method.toLowerCase() === 'get') {
     return updateRoute(request, response);
   }
 
