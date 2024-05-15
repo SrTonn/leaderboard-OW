@@ -1,61 +1,47 @@
-const got = require('got');
-const { JSDOM } = require('jsdom');
-const { formatLink, removeEmpty } = require('../func');
+import got from 'got';
+import { JSDOM } from 'jsdom';
+import { formatLink } from '../func/index';
 
-const baseUrl = 'https://playoverwatch.com/en-us/career/';
-const platform = 'pc';
+const baseUrl = 'https://overwatch.blizzard.com/en-us/career/';
 
-const battleTags = [
-  'soberana-11388',
-  'Fisher-11461',
-  'MeninoTrovão-1242',
-  'DaniCat#11786',
-  'RCR-11580',
-  'BrianD-11360',
-  'Skytter-11608',
-  'Martines-1856',
-  'stanleyasr-1367',
-  'Victimbu-1454',
-  'Lore-11213',
-  'MysteryMS#1546',
-  'Lock-12398',
-  'Fukui-11212',
-  'uKisuke-1754',
-  'VacaMorta-1273',
-  'ODIABO-11665',
-  'ViNi-12992',
-  'umi-11132',
-  'Brunolds-1534',
-  'Gabumon-11430',
-  'SrTonn-11540',
-];
+const getDom = async (profileUrl) => got(profileUrl, {
+  throwHttpErrors: false,
+  retry: {
+    calculateDelay: ({ computedValue }) => computedValue / 10,
+  },
+});
 
 const webScrap = async (profileUrl) => {
-  const data = {};
-  const response = await got(profileUrl, {
-    retry: {
-      calculateDelay: ({ computedValue }) => computedValue / 10,
-    },
-  });
-
+  const data = { error: null };
+  const response = await getDom(profileUrl);
   const dom = new JSDOM(response.body);
-  const regexCatchRole = /[a-z]+(?=(\sSkill\sRating))/ig;
-  const regexCatchRank = /[a-z]+(?=(Tier\.png))/ig;
+  const regexCatchRole = /role\/(.+)-.+\.svg/i;
+  const regexCatchRank = /rank\/(.+)Tier-([1-5])-.+\.png/i;
 
   try {
-    data.name = dom.window.document.querySelector('div.masthead-player > h1').textContent;
-  } catch (error) {
-    data.error = 'PROFILE NOT FOUND';
-    data.link = profileUrl;
     data.battleTag = profileUrl.match(/.+\/(.+)$/)[1].replace('-', '#');
+    if (+response.statusCode === 404) throw new Error('PROFILE NOT FOUND');
+    if (dom.window.document.querySelector('.Profile-player--privateText')) {
+      throw new Error('PRIVATE PROFILE');
+    }
+    data.name = dom.window.document
+      .querySelector('div.Profile-player--summaryWrapper > div > h1').textContent;
+  } catch (error) {
+    data.error = error.message;
+    data.link = profileUrl;
     return data;
   }
 
-  const content = [...dom.window.document.querySelectorAll('div.competitive-rank-section')];
+  const content = [...dom.window.document.querySelectorAll('.Profile-playerSummary--roleWrapper')];
+  const isConsolePlayer = dom.window.document
+    .querySelector('div.controller-view.Profile-playerSummary--rankWrapper').childElementCount > 0;
+
+  data.name += isConsolePlayer ? ' 🕹' : '';
+  data.platform = isConsolePlayer ? 'console' : 'pc';
+
   if (!content.length) {
     try {
       data.link = profileUrl;
-      data.battleTag = profileUrl.match(/.+\/(.+)$/)[1].replace('-', '#');
       data.error = dom.window.document
         .querySelector('div.masthead-permission-level-container.u-center-block').textContent;
     } catch (error) {
@@ -63,23 +49,26 @@ const webScrap = async (profileUrl) => {
     }
   }
 
-  content.splice(0, content.length / 2);
   content
-    .filter(removeEmpty)
+    // .filter(removeEmpty)
     .forEach((element) => {
-      const { outerHTML } = element.firstElementChild;
-      const role = outerHTML.match(regexCatchRole)[0].toLocaleLowerCase();
-      const rank = outerHTML.match(regexCatchRank)[0];
+      const { outerHTML } = element;
+
+      const role = outerHTML.match(regexCatchRole)[1];
+      // eslint-disable-next-line no-unused-vars
+      const [_, tierName, tierNumber] = outerHTML.match(regexCatchRank);
+
       if (!('competitive' in data)) data.competitive = {};
       data.competitive[role] = {
-        rank: element.textContent.toLocaleLowerCase(),
-        tier: rank,
+        rank: tierNumber,
+        tier: tierName,
       };
     });
 
   return data;
 };
+const newData = (battleTags) => battleTags.map((obj) => webScrap(formatLink(baseUrl, obj.battle_tag)));
 
-const newData = battleTags.map((tag) => webScrap(formatLink(baseUrl, platform, tag)));
+const getProfiles = async (battleTags) => Promise.all(newData(battleTags));
 
-module.exports = () => Promise.all(newData);
+export default getProfiles;

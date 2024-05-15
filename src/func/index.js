@@ -1,6 +1,16 @@
 const sortByHigherSR = (obj) => {
+  // eslint-disable-next-line max-len
+  const ranks = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'grandmaster', 'top500'];
   Object.values(obj)
-    .forEach((arr) => arr.sort((a, b) => b.match(/\d{3,4}/g) - a.match(/\d{3,4}/g)));
+    .forEach((arr) => {
+      arr.sort((a, b) => {
+        const [aTier, aRank] = a.split(' ');
+        const [bTier, bRank] = b.split(' ');
+        if (bTier === aTier) return aRank - bRank;
+        return ranks.indexOf(bTier) - ranks.indexOf(aTier);
+      });
+    });
+
   return obj;
 };
 
@@ -12,7 +22,7 @@ const splitNameByClass = (array) => {
     Object.keys(competitive).forEach((key) => {
       acc[key] = [
         ...acc[key] || '',
-        `${competitive[key].rank} ${competitive[key].tier} - ${name}`,
+        `${competitive[key].tier.toLowerCase()} ${competitive[key].rank} - ${name}`,
       ];
     });
     return acc;
@@ -21,39 +31,44 @@ const splitNameByClass = (array) => {
   return sortByHigherSR(result);
 };
 
-const firstLetterUpperCase = (string) => string[0].toUpperCase() + string.slice(1);
+const firstLetterUpperCase = (string) => string.replace(/\w/, (letter) => letter.toUpperCase());
 
 const addASCIICharacters = (data) => {
   const allRole = Object.keys(data);
   const result = JSON.parse(JSON.stringify(data));
+
   allRole.forEach((role) => {
     result[role] = data[role].reduce((acc, line, index, array) => {
-      const regexCatchRole = /(?<=\d{4}\s)\w*\s*/g;
+      const regexCatchRole = /\w+(?=(\s\d))/g;
       const currentRole = line.match(regexCatchRole)[0].trim();
       const nextLine = array[index + 1];
-      const afterLine = array[index - 1];
-      const afterRole = afterLine && afterLine.match(regexCatchRole)[0].trim();
-      const lineWithoutRole = line.replace(regexCatchRole, '');
+      const beforeLine = array[index - 1];
+      const beforeRole = beforeLine?.match(regexCatchRole)[0].trim();
+      const lineWithoutRole = line.replace(regexCatchRole, '').trim();
 
-      if (index === 0) return [...acc, `╔ ${currentRole}`, `╚ ${lineWithoutRole}`];
+      if (index === 0) {
+        const nextRole = nextLine?.match(regexCatchRole)[0].trim();
+        const charASCII = nextRole === currentRole ? '╠' : '╚';
+        return [...acc, `╔ ${currentRole}`, `${charASCII} ${lineWithoutRole}`];
+      }
 
       if (!nextLine) {
-        if (afterRole !== currentRole) return [...acc, `╔ ${currentRole}`, `╚ ${lineWithoutRole}`];
+        if (beforeRole !== currentRole) return [...acc, `╔ ${currentRole}`, `╚ ${lineWithoutRole}`];
 
         return [...acc, `╚ ${lineWithoutRole}`];
       }
 
       const nextRole = nextLine.match(regexCatchRole)[0].trim();
 
-      if (currentRole !== nextRole && currentRole === afterRole) {
+      if (currentRole !== nextRole && currentRole === beforeRole) {
         return [...acc, `╚ ${lineWithoutRole}`];
       }
 
-      if (afterRole !== currentRole && currentRole !== nextRole) {
+      if (beforeRole !== currentRole && currentRole !== nextRole) {
         return [...acc, `╔ ${currentRole}`, `╚ ${lineWithoutRole}`];
       }
 
-      if (afterRole !== currentRole) return [...acc, `╔ ${currentRole}`, `╠ ${lineWithoutRole}`];
+      if (beforeRole !== currentRole) return [...acc, `╔ ${currentRole}`, `╠ ${lineWithoutRole}`];
 
       return [...acc, `╠ ${lineWithoutRole}`];
     }, []);
@@ -67,7 +82,9 @@ const generateFinalTextToTelegram = (data) => {
   Object.entries(addASCIICharacters(splitNameByClass(data))).forEach((entry) => {
     const playersLength = entry[1].length - entry[1].join('\n').match(/╔/g).length;
     result += `${firstLetterUpperCase(entry[0])} (${playersLength})\n`;
-    entry[1].forEach((line) => { result += `${line}\n`; });
+    entry[1].forEach((line) => {
+      result += `${line[0] === '╔' ? firstLetterUpperCase(line) : line}\n`;
+    });
     result += '\n';
   });
 
@@ -76,9 +93,9 @@ const generateFinalTextToTelegram = (data) => {
 
 const removeEmpty = (element) => !!element.textContent || element.error;
 
-const formatLink = (baseUrl, platform, tag) => `${baseUrl}${platform}/${tag.replace('#', '-')}`;
+const formatLink = (baseUrl, tag) => `${baseUrl}${tag.replace('#', '-')}`;
 
-module.exports = {
+export {
   generateFinalTextToTelegram,
   formatLink,
   removeEmpty,
