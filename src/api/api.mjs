@@ -1,6 +1,6 @@
 import got from 'got';
 import { JSDOM } from 'jsdom';
-import { formatLink } from '../func/index';
+import { formatLink } from '../func/index.mjs';
 
 const baseUrl = 'https://overwatch.blizzard.com/en-us/career/';
 

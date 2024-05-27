@@ -14,6 +14,8 @@
     "no-console": ["warn", { "allow": ["error"] }],
     "max-len": ["error", { "code": 110 }],
     "prefer-destructuring": ["error", {"object": true, "array": false}],
-    "consistent-return": "off"
+    "consistent-return": "off",
+    "import/extensions": "off",
+    "import/prefer-default-export": "off"
   }
 }

@@ -1,9 +1,9 @@
 import { createServer } from 'node:http';
 import * as dotenv from 'dotenv';
-import apiData from './src/api/api';
-import { generateFinalTextToTelegram } from './src/func/index';
-import { editMessageText, sendMessage } from './src/telegram-methods/index';
-import * as supabase from './src/database/index';
+import apiData from './src/api/api.mjs';
+import { generateFinalTextToTelegram } from './src/func/index.mjs';
+import { editMessageText, sendMessage } from './src/telegram-methods/index.mjs';
+import * as supabase from './src/database/index.mjs';
 
 const Config = {
   NODE_ENV: process.env.NODE_ENV,
@@ -75,6 +75,12 @@ async function handler(request, response) {
 
   if (request.url === '/db/update' && request.method.toLowerCase() === 'get') {
     return updateDatabase(request, response);
+  }
+
+  if (request.url === '/hc' && request.method.toLowerCase() === 'get') {
+    response.writeHead(200);
+    response.end('Ok');
+    return;
   }
 
   response.writeHead(404);
